@@ -1,24 +1,55 @@
-import { showRole } from "./overlay.js";
+(function () {
+    const React = vendetta.metro.common.React;
 
-export const onLoad = () => {
-    console.log("Gradient Mod Tools Loaded");
+    function createOverlay() {
 
-    const roles = [
-        "1506384120949899316"
-    ];
+        const box = document.createElement("div");
 
-    showRole(roles);
-};
+        box.id = "gradient-role-display";
 
+        box.innerHTML = `
+        <div style="
+            position:fixed;
+            top:20px;
+            right:20px;
+            background:#111;
+            color:white;
+            padding:15px;
+            border-radius:12px;
+            z-index:999999;
+            font-family:sans-serif;
+        ">
+            🛡 Gradient Mod Tools
+            <br><br>
+            Role:
+            <b>Lead Moderator</b>
 
-export const onUnload = () => {
-    const overlay = document.getElementById(
-        "gradient-overlay"
-    );
+            <br><br>
 
-    if (overlay) {
-        overlay.remove();
+            Status:
+            ✅ Loaded
+        </div>
+        `;
+
+        document.body.appendChild(box);
     }
 
-    console.log("Gradient Mod Tools Unloaded");
-};
+
+    createOverlay();
+
+
+    return {
+        onUnload() {
+
+            const box =
+            document.getElementById(
+                "gradient-role-display"
+            );
+
+            if(box)
+                box.remove();
+        }
+    };
+
+})();
+
