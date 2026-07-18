@@ -1,10 +1,9 @@
 {
-"name":"GradientModTools",
-"description":"Gradient staff moderation assistant",
-"version":"1.0.0",
-"authors":[
-{
-"name":"Gubbzly"
-}
-]
-}
+    "name": "GradientModTools",
+    "description": "Gradient staff moderation assistant",
+    "authors": [
+        "Phytalityy"
+    ],
+    "version": "1.0.0",
+    "main": "plugin.js"
+}}
