@@ -7,8 +7,9 @@
         }
     ],
     "main": "index.js",
+    "version": "1.0.0",
     "vendetta": {
         "icon": "shield"
     },
-    "hash": "5a5126f2b3e113470bfc1a7e214559a6b0afa8d2a197471b00c6e11762683b32"
-}
+    "hash": "e91a359f18c895c3922a927c3c92c9c440e3575ea62f6e79854b336b60e1252f"
+}}
