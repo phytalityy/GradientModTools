@@ -1150,13 +1150,16 @@ console.log(
 // ================================
 // Gradient Mod Tools
 // Part 5/5
-// Final Plugin Export
+// Final Export + Cleanup
 // ================================
 
 
 
-plugin.settings =
-Settings;
+// No settings menu
+// Configuration is handled directly in index.js
+
+
+plugin.settings = null;
 
 
 
@@ -1182,6 +1185,7 @@ plugin.onUnload = function() {
 
             );
 
+
         }
 
 
@@ -1189,8 +1193,11 @@ plugin.onUnload = function() {
 
 
         console.log(
-            "[Gradient] Cleanup error",
+
+            "[Gradient] Cleanup failed",
+
             error
+
         );
 
 
@@ -1198,8 +1205,12 @@ plugin.onUnload = function() {
 
 
 
+
+
     console.log(
-        "[Gradient] Unloaded"
+
+        "[Gradient] Plugin unloaded"
+
     );
 
 
@@ -1210,8 +1221,12 @@ plugin.onUnload = function() {
 
 
 console.log(
+
     "[Gradient] Plugin ready"
+
 );
+
+
 
 
 
