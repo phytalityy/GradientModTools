@@ -1,30 +1,68 @@
 (function (plugin) {
     "use strict";
 
-    const React = vendetta.metro.common?.React ?? vendetta.metro.findByProps("createElement");
 
-    const Dispatcher = vendetta.metro.findByProps(
-        "dispatch",
-        "subscribe"
-    );
+    // Storage initialization
+    if (!plugin.storage) {
+        plugin.storage = {};
+    }
 
-    const Notifications =
-        vendetta.metro.findByProps(
-            "showNotification"
-        );
+    if (plugin.storage.enabled === undefined) {
+        plugin.storage.enabled = true;
+    }
+
+    if (!plugin.storage.alertCooldowns) {
+        plugin.storage.alertCooldowns = {};
+    }
+
+
+    // Metro modules
+    const Dispatcher = (() => {
+        try {
+            return vendetta.metro.findByProps(
+                "dispatch",
+                "subscribe"
+            ) ?? null;
+
+        } catch (e) {
+            console.log(
+                "[Gradient] Dispatcher failed",
+                e
+            );
+            return null;
+        }
+
+    })();
+
+
+    const Notifications = (() => {
+
+        try {
+
+            return vendetta.metro.findByProps(
+                "showNotification"
+            ) ?? null;
+
+        } catch (e) {
+
+            console.log(
+                "[Gradient] Notifications failed",
+                e
+            );
+
+            return null;
+
+        }
+
+    })();
+
 
     const GRADIENT_SERVER_ID =
         "1506336019828445365";
 
 
-    // FIX: initialize storage first
-    plugin.storage ??= {};
-
-    plugin.storage.enabled ??= true;
-    plugin.storage.alertCooldowns ??= {};
-
-
     let messageListener = null;
+
 
 
     /*
@@ -33,26 +71,34 @@
         ==========================================
     */
 
+
     function sendAlert(title, message) {
+
 
         if (!plugin.storage.enabled)
             return;
 
 
-        // Android notification attempt
+
+        // Android notification
+
         try {
 
-            if (Notifications?.showNotification) {
+            if (
+                Notifications &&
+                Notifications.showNotification
+            ) {
 
                 Notifications.showNotification({
 
-                    title: title,
+                    title,
 
                     body: message
 
                 });
 
             }
+
 
         } catch (e) {
 
@@ -64,12 +110,19 @@
         }
 
 
+
         // Toast fallback
+
         try {
 
-            vendetta.ui.showToast(
-                `${title}\n${message}`
-            );
+            if (vendetta.ui?.showToast) {
+
+                vendetta.ui.showToast(
+                    `${title}\n${message}`
+                );
+
+            }
+
 
         } catch (e) {
 
@@ -84,21 +137,27 @@
 
 
 
+
+
     /*
         ==========================================
-        Cooldown
+        Cooldown System
         ==========================================
     */
+
 
     function canAlert(
         type,
         cooldown = 10000
     ) {
 
+
         const now = Date.now();
+
 
         const last =
             plugin.storage.alertCooldowns[type] || 0;
+
 
 
         if (
@@ -110,12 +169,17 @@
         }
 
 
-        plugin.storage.alertCooldowns[type] = now;
+
+        plugin.storage.alertCooldowns[type] =
+            now;
+
 
 
         return true;
 
     }
+
+
 
 
 
@@ -125,6 +189,7 @@
         ==========================================
     */
 
+
     function createAlert(
         user,
         violation,
@@ -133,6 +198,7 @@
         severity
     ) {
 
+
         if (
             !canAlert(violation)
         ) {
@@ -140,6 +206,7 @@
             return;
 
         }
+
 
 
         const message =
@@ -159,6 +226,7 @@ Recommended:
 ${punishment}`;
 
 
+
         sendAlert(
             "🚨 Gradient Mod Alert",
             message
@@ -168,11 +236,14 @@ ${punishment}`;
 
 
 
+
+
     /*
         ==========================================
         Public API
         ==========================================
     */
+
 
     plugin.gradient = {
 
@@ -188,9 +259,11 @@ ${punishment}`;
     };
 
 
+
     console.log(
         "[Gradient] Core loaded"
     );
+
 
 
     /*
@@ -902,27 +975,7 @@ ${punishment}`;
         ==========================================
     */
 
-    plugin.settings = () => {
-
-        return React.createElement(
-
-            "View",
-
-            null,
-
-            React.createElement(
-
-                "Text",
-
-                null,
-
-                "Gradient Mod Alert System"
-
-            )
-
-        );
-
-    };
+    plugin.settings = () => null;
 
 
 
