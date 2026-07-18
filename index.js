@@ -1,10 +1,23 @@
 (function (plugin) {
+    "use strict";
+
     const React = vendetta.metro.common.React;
-    const Forms = vendetta.ui.components.Forms;
+
+    const Forms = vendetta.metro.findByProps(
+        "FormRow",
+        "FormSection"
+    );
+
+    if (!Forms) {
+        console.log("[Gradient] Forms not found");
+        return plugin;
+    }
+
 
     plugin.storage.role ??= "Entry Level Moderator";
 
-    const roles = [
+
+    const ROLES = [
         "Entry Level Moderator",
         "Moderator",
         "Lead Moderator",
@@ -13,34 +26,40 @@
         "Staff Manager"
     ];
 
+
     plugin.settings = () => {
+
         return React.createElement(
             Forms.FormSection,
             {
                 title: "Gradient Mod Tools"
             },
 
-            ...roles.map((role) =>
+            ...ROLES.map((role) =>
                 React.createElement(
                     Forms.FormRow,
                     {
                         label: role,
+
                         subLabel:
                             plugin.storage.role === role
                                 ? "Selected ✓"
-                                : "Tap to select",
+                                : "Select",
 
                         onPress: () => {
+
                             plugin.storage.role = role;
 
                             vendetta.ui.showToast(
-                                `Selected ${role}`
+                                "Selected " + role
                             );
+
                         }
                     }
                 )
             )
         );
+
     };
 
 
@@ -50,9 +69,7 @@
 
 
     plugin.onUnload = () => {
-        console.log(
-            "[Gradient] Unloaded"
-        );
+        console.log("[Gradient] Unloaded");
     };
 
 
