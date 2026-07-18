@@ -81,11 +81,8 @@
     }
 
 
-    /*
-        TEST ROLE
-        Replace this later with automatic Discord role detection.
-    */
-
+    // TEST ROLE
+    // Replace this later with automatic Discord role detection
     const testRoles = [
         "1516768057677058220"
     ];
@@ -96,16 +93,34 @@
 
     function Settings() {
 
-        return React.createElement(
-            ui.components.FormRow,
-            {
-                label: "Gradient Mod Tools",
-                subLabel: currentRole
-                    ? `${currentRole.name} | ${currentRole.permissions.join(", ")}`
-                    : "No staff role detected"
-            }
-        );
+        const Forms = ui.components.Forms;
 
+        return React.createElement(
+            Forms.FormSection,
+            {
+                title: "Gradient Mod Tools"
+            },
+
+            React.createElement(
+                Forms.FormRow,
+                {
+                    label: "Detected Role",
+                    subLabel: currentRole
+                        ? currentRole.name
+                        : "No staff role detected"
+                }
+            ),
+
+            React.createElement(
+                Forms.FormRow,
+                {
+                    label: "Permissions",
+                    subLabel: currentRole
+                        ? currentRole.permissions.join(", ")
+                        : "None"
+                }
+            )
+        );
     }
 
 
@@ -115,8 +130,8 @@
     console.log(
         "[Gradient Mod Tools]",
         currentRole
-            ? `Detected ${currentRole.name}`
-            : "No staff role"
+            ? `Loaded as ${currentRole.name}`
+            : "No staff role detected"
     );
 
 
