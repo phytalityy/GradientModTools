@@ -3,7 +3,11 @@
 
     const React = metro.common.React;
 
+    const GRADIENT_GUILD_ID = "1506336019828445365";
+
+
     const STAFF_ROLES = {
+
         "1506385513181872149": {
             level: 1,
             name: "Entry Level Moderator",
@@ -59,41 +63,98 @@
                 "*"
             ]
         }
+
     };
 
 
-    function getHighestStaffRole(userRoles) {
+    const UserStore = metro.findByProps(
+        "getCurrentUser"
+    );
+
+    const GuildMemberStore = metro.findByProps(
+        "getMember"
+    );
+
+    const GuildStore = metro.findByProps(
+        "getGuilds"
+    );
+
+
+    function getHighestStaffRole(roleIds) {
 
         let highest = null;
 
-        for (const roleID of userRoles) {
+        for (const roleId of roleIds) {
 
-            const role = STAFF_ROLES[roleID];
+            const role = STAFF_ROLES[roleId];
 
-            if (!role) continue;
+            if (!role)
+                continue;
+
 
             if (!highest || role.level > highest.level) {
                 highest = role;
             }
+
         }
 
         return highest;
     }
 
 
-    // TEST ROLE
-    // Replace this later with automatic Discord role detection
-    const testRoles = [
-        "1516768057677058220"
-    ];
+
+    function getCurrentStaffRole() {
+
+        try {
+
+            const user = UserStore.getCurrentUser();
+
+            if (!user)
+                return null;
 
 
-    const currentRole = getHighestStaffRole(testRoles);
+            const guilds = GuildStore.getGuilds();
+
+
+            if (!guilds[GRADIENT_GUILD_ID])
+                return null;
+
+
+            const member = GuildMemberStore.getMember(
+                GRADIENT_GUILD_ID,
+                user.id
+            );
+
+
+            if (!member)
+                return null;
+
+
+            return getHighestStaffRole(
+                member.roles
+            );
+
+
+        } catch (e) {
+
+            console.log(
+                "[Gradient Mod Tools] Role error:",
+                e
+            );
+
+            return null;
+        }
+
+    }
+
 
 
     function Settings() {
 
+        const role = getCurrentStaffRole();
+
         const Forms = ui.components.Forms;
+
 
         return React.createElement(
             Forms.FormSection,
@@ -101,42 +162,50 @@
                 title: "Gradient Mod Tools"
             },
 
+
             React.createElement(
                 Forms.FormRow,
                 {
                     label: "Detected Role",
-                    subLabel: currentRole
-                        ? currentRole.name
-                        : "No staff role detected"
+                    subLabel: role
+                        ? role.name
+                        : "Not Staff / Not Found"
                 }
             ),
+
 
             React.createElement(
                 Forms.FormRow,
                 {
                     label: "Permissions",
-                    subLabel: currentRole
-                        ? currentRole.permissions.join(", ")
+                    subLabel: role
+                        ? role.permissions.join(", ")
                         : "None"
                 }
             )
+
         );
+
     }
+
 
 
     plugin.settings = Settings;
 
 
     console.log(
-        "[Gradient Mod Tools]",
-        currentRole
-            ? `Loaded as ${currentRole.name}`
-            : "No staff role detected"
+        "[Gradient Mod Tools] Loaded",
+        getCurrentStaffRole()
     );
 
 
+
     plugin.onUnload = () => {
-        console.log("[Gradient Mod Tools] Unloaded");
+
+        console.log(
+            "[Gradient Mod Tools] Unloaded"
+        );
+
     };
 
 
