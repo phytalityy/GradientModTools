@@ -2,158 +2,67 @@
     "use strict";
 
     const React = metro.common.React;
-
-    const GRADIENT_GUILD_ID = "1506336019828445365";
-
+    const { Forms } = ui.components;
 
     const STAFF_ROLES = {
-
-        "1506385513181872149": {
+        "Entry Level Moderator": {
             level: 1,
-            name: "Entry Level Moderator",
             permissions: [
-                "kick",
-                "move",
-                "disconnect",
-                "serverMute",
-                "serverDeafen"
+                "Kick",
+                "Move",
+                "Disconnect",
+                "Server Mute",
+                "Server Deafen"
             ]
         },
 
-        "1516768057677058220": {
+        "Moderator": {
             level: 2,
-            name: "Moderator",
             permissions: [
-                "warn",
-                "timeout",
-                "jail",
-                "imute",
-                "rmute"
+                "Warn",
+                "Timeout",
+                "Jail",
+                "Image Mute",
+                "Reaction Mute"
             ]
         },
 
-        "1506384120949899316": {
+        "Lead Moderator": {
             level: 3,
-            name: "Lead Moderator",
             permissions: [
-                "ban"
+                "Ban"
             ]
         },
 
-        "1506419619089350759": {
+        "Head Moderator": {
             level: 4,
-            name: "Head Moderator",
             permissions: [
-                "serverManagement"
+                "Server Management"
             ]
         },
 
-        "1516752884539195515": {
+        "Administrator": {
             level: 5,
-            name: "Administrator",
             permissions: [
-                "administrator"
+                "Administrator"
             ]
         },
 
-        "1515499498279800936": {
+        "Staff Manager": {
             level: 6,
-            name: "Staff Manager",
             permissions: [
-                "*"
+                "All Permissions"
             ]
         }
-
     };
 
 
-    const UserStore = metro.findByProps(
-        "getCurrentUser"
-    );
-
-    const GuildMemberStore = metro.findByProps(
-        "getMember"
-    );
-
-    const GuildStore = metro.findByProps(
-        "getGuilds"
-    );
-
-
-    function getHighestStaffRole(roleIds) {
-
-        let highest = null;
-
-        for (const roleId of roleIds) {
-
-            const role = STAFF_ROLES[roleId];
-
-            if (!role)
-                continue;
-
-
-            if (!highest || role.level > highest.level) {
-                highest = role;
-            }
-
-        }
-
-        return highest;
-    }
-
-
-
-    function getCurrentStaffRole() {
-
-        try {
-
-            const user = UserStore.getCurrentUser();
-
-            if (!user)
-                return null;
-
-
-            const guilds = GuildStore.getGuilds();
-
-
-            if (!guilds[GRADIENT_GUILD_ID])
-                return null;
-
-
-            const member = GuildMemberStore.getMember(
-                GRADIENT_GUILD_ID,
-                user.id
-            );
-
-
-            if (!member)
-                return null;
-
-
-            return getHighestStaffRole(
-                member.roles
-            );
-
-
-        } catch (e) {
-
-            console.log(
-                "[Gradient Mod Tools] Role error:",
-                e
-            );
-
-            return null;
-        }
-
-    }
-
+    plugin.storage.selectedRole ??= "Entry Level Moderator";
 
 
     function Settings() {
 
-        const role = getCurrentStaffRole();
-
-        const Forms = ui.components.Forms;
+        const role = plugin.storage.selectedRole;
 
 
         return React.createElement(
@@ -166,21 +75,49 @@
             React.createElement(
                 Forms.FormRow,
                 {
-                    label: "Detected Role",
+                    label: "Current Staff Role",
                     subLabel: role
-                        ? role.name
-                        : "Not Staff / Not Found"
                 }
             ),
+
+
+            ...Object.keys(STAFF_ROLES).map((roleName) => {
+
+                return React.createElement(
+                    Forms.FormRow,
+                    {
+                        label: roleName,
+
+                        subLabel:
+                            role === roleName
+                                ? "Selected ✓"
+                                : "Tap to select",
+
+
+                        onPress: () => {
+
+                            plugin.storage.selectedRole = roleName;
+
+                            ui.showToast(
+                                `Role changed to ${roleName}`
+                            );
+
+                        }
+                    }
+                );
+
+            }),
 
 
             React.createElement(
                 Forms.FormRow,
                 {
                     label: "Permissions",
-                    subLabel: role
-                        ? role.permissions.join(", ")
-                        : "None"
+
+                    subLabel:
+                        STAFF_ROLES[role]
+                            .permissions
+                            .join(", ")
                 }
             )
 
@@ -189,15 +126,13 @@
     }
 
 
-
     plugin.settings = Settings;
 
 
     console.log(
-        "[Gradient Mod Tools] Loaded",
-        getCurrentStaffRole()
+        "[Gradient Mod Tools] Loaded as:",
+        plugin.storage.selectedRole
     );
-
 
 
     plugin.onUnload = () => {
