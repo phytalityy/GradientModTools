@@ -1,14 +1,7 @@
-(function (plugin) {
-    "use strict";
+(function(plugin) {
+    vendetta.ui.showToast("TEST WORKED");
 
     return {
-        onLoad() {
-            console.log("[Gradient Mod Tools] Loaded");
-        },
-
-        onUnload() {
-            console.log("[Gradient Mod Tools] Unloaded");
-        }
+        onUnload() {}
     };
-
-})(plugin);
+})(this);
