@@ -1,105 +1,91 @@
-(function (plugin, metro, patcher, storage, ui) {
+(function (plugin, metro, ui) {
     "use strict";
 
     const React = metro.common.React;
-    const { Forms } = ui.components;
+
+    const {
+        FormRow,
+        FormSection
+    } = ui.components.Forms;
+
 
     const STAFF_ROLES = {
-        "Entry Level Moderator": {
-            level: 1,
-            permissions: [
-                "Kick",
-                "Move",
-                "Disconnect",
-                "Server Mute",
-                "Server Deafen"
-            ]
-        },
+        "Entry Level Moderator": [
+            "Kick",
+            "Move",
+            "Disconnect",
+            "Server Mute",
+            "Server Deafen"
+        ],
 
-        "Moderator": {
-            level: 2,
-            permissions: [
-                "Warn",
-                "Timeout",
-                "Jail",
-                "Image Mute",
-                "Reaction Mute"
-            ]
-        },
+        "Moderator": [
+            "Warn",
+            "Timeout",
+            "Jail",
+            "Image Mute",
+            "Reaction Mute"
+        ],
 
-        "Lead Moderator": {
-            level: 3,
-            permissions: [
-                "Ban"
-            ]
-        },
+        "Lead Moderator": [
+            "Ban"
+        ],
 
-        "Head Moderator": {
-            level: 4,
-            permissions: [
-                "Server Management"
-            ]
-        },
+        "Head Moderator": [
+            "Server Management"
+        ],
 
-        "Administrator": {
-            level: 5,
-            permissions: [
-                "Administrator"
-            ]
-        },
+        "Administrator": [
+            "Administrator"
+        ],
 
-        "Staff Manager": {
-            level: 6,
-            permissions: [
-                "All Permissions"
-            ]
-        }
+        "Staff Manager": [
+            "All Permissions"
+        ]
     };
 
 
-    plugin.storage.selectedRole ??= "Entry Level Moderator";
+    plugin.storage.role ??= "Entry Level Moderator";
 
 
     function Settings() {
 
-        const role = plugin.storage.selectedRole;
+        const currentRole = plugin.storage.role;
 
 
         return React.createElement(
-            Forms.FormSection,
+            FormSection,
             {
                 title: "Gradient Mod Tools"
             },
 
 
             React.createElement(
-                Forms.FormRow,
+                FormRow,
                 {
-                    label: "Current Staff Role",
-                    subLabel: role
+                    label: "Selected Role",
+                    subLabel: currentRole
                 }
             ),
 
 
-            ...Object.keys(STAFF_ROLES).map((roleName) => {
+            ...Object.keys(STAFF_ROLES).map((role) => {
 
                 return React.createElement(
-                    Forms.FormRow,
+                    FormRow,
                     {
-                        label: roleName,
+                        label: role,
 
                         subLabel:
-                            role === roleName
-                                ? "Selected ✓"
-                                : "Tap to select",
-
+                            role === currentRole
+                                ? "Currently Selected ✓"
+                                : "Select",
 
                         onPress: () => {
 
-                            plugin.storage.selectedRole = roleName;
+                            plugin.storage.role = role;
 
                             ui.showToast(
-                                `Role changed to ${roleName}`
+                                `Selected ${role}`
                             );
 
                         }
@@ -110,19 +96,16 @@
 
 
             React.createElement(
-                Forms.FormRow,
+                FormRow,
                 {
                     label: "Permissions",
 
                     subLabel:
-                        STAFF_ROLES[role]
-                            .permissions
+                        STAFF_ROLES[currentRole]
                             .join(", ")
                 }
             )
-
         );
-
     }
 
 
@@ -130,8 +113,7 @@
 
 
     console.log(
-        "[Gradient Mod Tools] Loaded as:",
-        plugin.storage.selectedRole
+        "[Gradient Mod Tools] Loaded"
     );
 
 
@@ -150,7 +132,5 @@
 })(
     {},
     vendetta.metro,
-    vendetta.patcher,
-    vendetta.storage,
     vendetta.ui
 );
