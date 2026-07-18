@@ -1,136 +1,61 @@
-(function (plugin, metro, ui) {
-    "use strict";
-
-    const React = metro.common.React;
-
-    const {
-        FormRow,
-        FormSection
-    } = ui.components.Forms;
-
-
-    const STAFF_ROLES = {
-        "Entry Level Moderator": [
-            "Kick",
-            "Move",
-            "Disconnect",
-            "Server Mute",
-            "Server Deafen"
-        ],
-
-        "Moderator": [
-            "Warn",
-            "Timeout",
-            "Jail",
-            "Image Mute",
-            "Reaction Mute"
-        ],
-
-        "Lead Moderator": [
-            "Ban"
-        ],
-
-        "Head Moderator": [
-            "Server Management"
-        ],
-
-        "Administrator": [
-            "Administrator"
-        ],
-
-        "Staff Manager": [
-            "All Permissions"
-        ]
-    };
-
+(function (plugin) {
+    const React = vendetta.metro.common.React;
+    const Forms = vendetta.ui.components.Forms;
 
     plugin.storage.role ??= "Entry Level Moderator";
 
+    const roles = [
+        "Entry Level Moderator",
+        "Moderator",
+        "Lead Moderator",
+        "Head Moderator",
+        "Administrator",
+        "Staff Manager"
+    ];
 
-    function Settings() {
-
-        const currentRole = plugin.storage.role;
-
-
+    plugin.settings = () => {
         return React.createElement(
-            FormSection,
+            Forms.FormSection,
             {
                 title: "Gradient Mod Tools"
             },
 
-
-            React.createElement(
-                FormRow,
-                {
-                    label: "Selected Role",
-                    subLabel: currentRole
-                }
-            ),
-
-
-            ...Object.keys(STAFF_ROLES).map((role) => {
-
-                return React.createElement(
-                    FormRow,
+            ...roles.map((role) =>
+                React.createElement(
+                    Forms.FormRow,
                     {
                         label: role,
-
                         subLabel:
-                            role === currentRole
-                                ? "Currently Selected ✓"
-                                : "Select",
+                            plugin.storage.role === role
+                                ? "Selected ✓"
+                                : "Tap to select",
 
                         onPress: () => {
-
                             plugin.storage.role = role;
 
-                            ui.showToast(
+                            vendetta.ui.showToast(
                                 `Selected ${role}`
                             );
-
                         }
                     }
-                );
-
-            }),
-
-
-            React.createElement(
-                FormRow,
-                {
-                    label: "Permissions",
-
-                    subLabel:
-                        STAFF_ROLES[currentRole]
-                            .join(", ")
-                }
+                )
             )
         );
-    }
-
-
-    plugin.settings = Settings;
+    };
 
 
     console.log(
-        "[Gradient Mod Tools] Loaded"
+        "[Gradient] Role selector loaded"
     );
 
 
     plugin.onUnload = () => {
-
         console.log(
-            "[Gradient Mod Tools] Unloaded"
+            "[Gradient] Unloaded"
         );
-
     };
 
 
     return plugin;
 
-
-})(
-    {},
-    vendetta.metro,
-    vendetta.ui
-);
+})({});
