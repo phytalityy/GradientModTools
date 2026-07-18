@@ -301,17 +301,18 @@ console.log(
 // ================================
 // Gradient Mod Tools
 // Part 2/5
-// Settings System
+// Fixed Settings System
 // ================================
+
+
+const ReactNative =
+vendetta.metro.common.ReactNative;
 
 
 const {
     ScrollView,
     TextInput
-} = findByProps(
-    "ScrollView",
-    "TextInput"
-);
+} = ReactNative;
 
 
 
@@ -320,7 +321,8 @@ const {
     TableRow,
     TableSwitchRow,
     Stack
-} = findByProps(
+} =
+vendetta.metro.findByProps(
     "TableRowGroup",
     "TableRow",
     "TableSwitchRow",
@@ -369,18 +371,31 @@ function Settings() {
 
 
         if (
-            !storage.keywords.includes(word)
+            !storage.keywords.includes(
+                word
+            )
         ) {
 
 
-            storage.keywords.push(
+            storage.keywords = [
+
+                ...storage.keywords,
+
                 word
-            );
+
+            ];
+
 
 
             setKeyword("");
 
             update();
+
+
+            console.log(
+                "[Gradient] Added keyword:",
+                word
+            );
 
         }
 
@@ -402,7 +417,15 @@ function Settings() {
         );
 
 
+
         update();
+
+
+
+        console.log(
+            "[Gradient] Removed keyword:",
+            word
+        );
 
     }
 
@@ -443,6 +466,8 @@ function Settings() {
 
 
 
+
+
             React.createElement(
 
                 TableRowGroup,
@@ -463,18 +488,20 @@ function Settings() {
                         label:
                         "Enable Scanner",
 
+
                         subLabel:
-                        "Enable moderation detection",
+                        "Detect rule violations",
+
 
                         value:
                         storage.enabled,
 
 
                         onValueChange:
-                        function(v){
+                        function(value){
 
                             storage.enabled =
-                            v;
+                            value;
 
                             update();
 
@@ -483,6 +510,8 @@ function Settings() {
                     }
 
                 ),
+
+
 
 
 
@@ -496,18 +525,20 @@ function Settings() {
                         label:
                         "Android Notifications",
 
+
                         subLabel:
                         "Attempt phone notifications",
+
 
                         value:
                         storage.sendAndroid,
 
 
                         onValueChange:
-                        function(v){
+                        function(value){
 
                             storage.sendAndroid =
-                            v;
+                            value;
 
                             update();
 
@@ -519,6 +550,8 @@ function Settings() {
 
 
             ),
+
+
 
 
 
@@ -531,8 +564,9 @@ function Settings() {
 
                 {
                     title:
-                    "Webhook URL"
+                    "Webhook"
                 },
+
 
 
                 React.createElement(
@@ -542,21 +576,26 @@ function Settings() {
                     {
 
                         placeholder:
-                        "Paste Discord webhook URL",
+                        "Paste Discord Webhook URL",
+
 
                         value:
                         storage.webhookURL,
 
 
-                        onChange:
-                        function(v){
+                        onChangeText:
+                        function(value){
 
                             storage.webhookURL =
-                            v;
+                            value;
 
                             update();
 
-                        }
+                        },
+
+
+                        autoCapitalize:
+                        "none"
 
                     }
 
@@ -564,6 +603,8 @@ function Settings() {
 
 
             ),
+
+
 
 
 
@@ -581,6 +622,7 @@ function Settings() {
                 },
 
 
+
                 React.createElement(
 
                     TextInput,
@@ -588,18 +630,23 @@ function Settings() {
                     {
 
                         placeholder:
-                        "Keyword",
+                        "Enter keyword or phrase",
+
 
                         value:
                         keyword,
 
 
-                        onChange:
+                        onChangeText:
                         setKeyword,
 
 
                         onSubmitEditing:
-                        addKeyword
+                        addKeyword,
+
+
+                        returnKeyType:
+                        "done"
 
                     }
 
@@ -617,6 +664,11 @@ function Settings() {
                         label:
                         "Add Keyword",
 
+
+                        subLabel:
+                        "Tap to save keyword",
+
+
                         onPress:
                         addKeyword
 
@@ -624,8 +676,8 @@ function Settings() {
 
                 )
 
-            ),
 
+            ),
 
 
 
@@ -662,6 +714,10 @@ function Settings() {
                                 word,
 
 
+                                subLabel:
+                                "Tap to remove",
+
+
                                 onPress:
                                 function(){
 
@@ -694,8 +750,13 @@ function Settings() {
 
 
 
+plugin.settings =
+Settings;
+
+
+
 console.log(
-    "[Gradient] Part 2 loaded"
+    "[Gradient] Fixed Part 2 loaded"
 );
 
 // ================================
