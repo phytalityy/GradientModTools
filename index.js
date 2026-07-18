@@ -4,58 +4,145 @@
 
 const Dispatcher =
     vendetta.metro.findByProps(
-        "dispatch",
         "subscribe",
         "unsubscribe"
     );
-
 
 
 // ================================
 // CONFIG
 // ================================
 
+const SERVER_ID =
+"1506336019828445365";
+
 
 const WEBHOOK_URL =
-"https://discord.com/api/webhooks/1528131416326541508/Q-UxcsQOtQitww2wWD0LJMFA4yqyoJep8K0QO43T5y-Lqguww8j9qVVOM8D7c4j-nw7a";;
+"PASTE_WEBHOOK_HERE";
 
 
 
-const KEYWORDS = [
+const ENTRY_ACTIONS = {
 
-    "discord.gg",
-    "discord.com/invite",
+    NSFW:
+    "Imute / Timeout (3h)",
 
-    "free nitro",
+    HATE:
+    "Timeout / Jail + Higher Staff Review",
 
-    "nsfw",
-    "nudes",
+    THREATS:
+    "Jail + Higher Staff Review",
 
-    "ddos",
-    "ip logger",
-    "grabify",
+    ADVERTISING:
+    "Remove Advertisement + Verbal Warn",
 
-    "hack",
+    SPAM:
+    "Warn → Jail/Timeout",
 
-    "kys",
+    IMPERSONATION:
+    "Jail until corrected",
 
-    "@everyone",
-    "@here"
+    TOXICITY:
+    "Verbal Warn → Warn"
+
+};
+
+
+
+
+// ================================
+// KEYWORDS
+// ================================
+
+
+const RULES = [
+
+{
+type:"NSFW",
+keywords:[
+"nsfw",
+"nudes",
+"porn",
+"onlyfans",
+"explicit",
+"sexual",
+"send pics"
+]
+},
+
+
+{
+type:"THREATS",
+keywords:[
+"ddos",
+"i will hack you",
+"leak your ip",
+"find your house",
+"kill you",
+"swat you"
+]
+},
+
+
+{
+type:"ADVERTISING",
+keywords:[
+"discord.gg/",
+"discord.com/invite",
+"join my server",
+"free nitro"
+]
+},
+
+
+{
+type:"SPAM",
+keywords:[
+"@everyone",
+"@here",
+"ping everyone"
+]
+},
+
+
+{
+type:"IMPERSONATION",
+keywords:[
+"i am staff",
+"i'm staff",
+"i am admin",
+"owner said"
+]
+},
+
+
+{
+type:"TOXICITY",
+keywords:[
+"kill yourself",
+"nobody likes you",
+"loser"
+]
+}
 
 ];
 
 
 
 
-
 // ================================
-// VARIABLES
+// TRACKING
 // ================================
 
 
 let listener = null;
 
-let enabled = false;
+let editListener = null;
+
+let deleteListener = null;
+
+
+let history = {};
 
 
 
@@ -66,15 +153,14 @@ let enabled = false;
 // ================================
 
 
-async function sendWebhook(content) {
+async function webhook(data){
 
 
     if (
         WEBHOOK_URL ===
         "PASTE_WEBHOOK_HERE"
-    ) {
-        return;
-    }
+    )
+    return;
 
 
 
@@ -87,21 +173,17 @@ async function sendWebhook(content) {
 
             {
 
-                method:
-                "POST",
+                method:"POST",
 
-
-                headers:
-                {
+                headers:{
                     "Content-Type":
                     "application/json"
                 },
 
 
-                body:
-                JSON.stringify({
+                body:JSON.stringify({
 
-                    content
+                    content:data
 
                 })
 
@@ -110,12 +192,13 @@ async function sendWebhook(content) {
         );
 
 
-    } catch(error) {
+    }
+    catch(e){
 
 
         console.log(
-            "[Gradient] Webhook failed",
-            error
+            "[Gradient]",
+            e
         );
 
 
@@ -128,33 +211,93 @@ async function sendWebhook(content) {
 
 
 // ================================
-// SCANNER
+// ALERT
 // ================================
 
 
-function scanMessage(message) {
+function alertViolation(
+message,
+rule,
+keyword
+){
 
 
-    if (
-        !enabled
-    )
-        return;
+    const user =
+    message.author;
+
+
+    const channel =
+    message.channel_id;
 
 
 
-    if (
+    webhook(
+
+`🚨 **Gradient Mod Alert**
+
+**Server**
+${SERVER_ID}
+
+**Channel ID**
+${channel}
+
+**User**
+<@${user.id}>
+
+**Username**
+${user.username}
+
+**Violation**
+${rule}
+
+**Triggered Keyword**
+${keyword}
+
+**Message**
+${message.content}
+
+**Recommended Entry Action**
+${ENTRY_ACTIONS[rule]}
+
+`
+
+    );
+
+}
+
+
+
+
+
+// ================================
+// KEYWORD SCANNER
+// ================================
+
+
+function scan(message){
+
+
+    if(
         !message ||
         !message.content ||
         !message.author
     )
-        return;
+    return;
 
 
 
-    if (
+    if(
+        message.guild_id &&
+        message.guild_id !== SERVER_ID
+    )
+    return;
+
+
+
+    if(
         message.author.bot
     )
-        return;
+    return;
 
 
 
@@ -163,42 +306,191 @@ function scanMessage(message) {
 
 
 
+    for(
+        const rule of RULES
+    ){
 
 
-    for (
-        const keyword of KEYWORDS
-    ) {
+        for(
+            const word of rule.keywords
+        ){
 
 
-        if (
-            text.includes(keyword)
-        ) {
+            if(
+                text.includes(word)
+            ){
 
 
-            sendWebhook(
+                alertViolation(
 
-`🚨 Gradient Mod Alert
+                    message,
+
+                    rule.type,
+
+                    word
+
+                );
+
+
+                return;
+
+            }
+
+        }
+
+    }
+
+
+    checkAttachments(message);
+
+
+    checkSpam(message);
+
+}
+
+
+
+
+
+// ================================
+// ATTACHMENT SCANNER
+// ================================
+
+
+function checkAttachments(message){
+
+
+    if(
+        !message.attachments
+    )
+    return;
+
+
+
+    const files =
+    Object.values(
+        message.attachments
+    );
+
+
+
+    for(
+        const file of files
+    ){
+
+
+        const name =
+        file.filename?.toLowerCase();
+
+
+
+        if(!name)
+        continue;
+
+
+
+        if(
+
+            name.includes("nsfw") ||
+            name.includes("nude") ||
+            name.includes("virus") ||
+            name.includes("grabify") ||
+            name.endsWith(".exe") ||
+            name.endsWith(".apk")
+
+        ){
+
+
+            webhook(
+
+`🚨 **Gradient Attachment Alert**
 
 User:
-${message.author.username}
+<@${message.author.id}>
 
-User ID:
-${message.author.id}
+File:
+${file.filename}
 
-Keyword:
-${keyword}
+Channel:
+${message.channel_id}
 
-Message:
-${message.content}
+Recommended:
+Imute / Timeout
 
-@everyone`
+Reason:
+Suspicious attachment name`
 
             );
 
 
-            break;
-
         }
+
+    }
+
+}
+
+
+
+
+
+// ================================
+// SPAM DETECTION
+// ================================
+
+
+function checkSpam(message){
+
+
+    const id =
+    message.author.id;
+
+
+
+    history[id] ??= [];
+
+
+
+    history[id].push(
+        Date.now()
+    );
+
+
+
+    history[id] =
+    history[id].filter(
+
+        x =>
+        Date.now()-x < 5000
+
+    );
+
+
+
+    if(
+        history[id].length >= 6
+    ){
+
+
+        webhook(
+
+`🚨 **Gradient Spam Alert**
+
+User:
+<@${id}>
+
+Channel:
+${message.channel_id}
+
+Messages:
+${history[id].length} in 5 seconds
+
+Recommended:
+Warn → Jail/Timeout`
+
+        );
+
+
+        history[id]=[];
 
     }
 
@@ -216,27 +508,9 @@ ${message.content}
 function onLoad(){
 
 
-    if (
-        listener
-    )
-        return;
-
-
-
-    enabled = true;
-
-
-
     listener =
-    function(data){
-
-
-        scanMessage(
-            data.message
-        );
-
-
-    };
+    data =>
+    scan(data.message);
 
 
 
@@ -245,6 +519,62 @@ function onLoad(){
         "MESSAGE_CREATE",
 
         listener
+
+    );
+
+
+
+    editListener =
+    data =>
+    scan(data.message);
+
+
+
+    Dispatcher.subscribe(
+
+        "MESSAGE_UPDATE",
+
+        editListener
+
+    );
+
+
+
+    deleteListener =
+    data => {
+
+
+        if(
+            data.message
+        ){
+
+
+            webhook(
+
+`⚠️ **Message Deleted**
+
+User:
+<@${data.message.author?.id}>
+
+Channel:
+${data.message.channel_id}
+
+Content:
+${data.message.content}`
+
+            );
+
+        }
+
+    };
+
+
+
+    Dispatcher.subscribe(
+
+        "MESSAGE_DELETE",
+
+        deleteListener
 
     );
 
@@ -268,27 +598,28 @@ function onLoad(){
 function onUnload(){
 
 
-    enabled = false;
+    if(listener)
 
-
-
-    if (
+    Dispatcher.unsubscribe(
+        "MESSAGE_CREATE",
         listener
-    ) {
+    );
 
 
-        Dispatcher.unsubscribe(
+    if(editListener)
 
-            "MESSAGE_CREATE",
+    Dispatcher.unsubscribe(
+        "MESSAGE_UPDATE",
+        editListener
+    );
 
-            listener
 
-        );
+    if(deleteListener)
 
-
-        listener = null;
-
-    }
+    Dispatcher.unsubscribe(
+        "MESSAGE_DELETE",
+        deleteListener
+    );
 
 
 
@@ -297,7 +628,6 @@ function onUnload(){
     );
 
 }
-
 
 
 
