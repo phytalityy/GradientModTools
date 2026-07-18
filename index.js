@@ -1,26 +1,24 @@
 import { showRole } from "./overlay.js";
 
-export default {
-    name: "Gradient Mod Tools",
+export const onLoad = () => {
+    console.log("Gradient Mod Tools Loaded");
 
-    start() {
-        console.log("Gradient Mod Tools Loaded");
+    const roles = [
+        "1506384120949899316"
+    ];
 
-        // TEST ROLE
-        const roles = [
-            "1506384120949899316"
-        ];
+    showRole(roles);
+};
 
-        showRole(roles);
-    },
 
-    stop() {
-        const overlay = document.getElementById(
-            "gradient-overlay"
-        );
+export const onUnload = () => {
+    const overlay = document.getElementById(
+        "gradient-overlay"
+    );
 
-        if (overlay) overlay.remove();
-
-        console.log("Gradient Mod Tools Stopped");
+    if (overlay) {
+        overlay.remove();
     }
+
+    console.log("Gradient Mod Tools Unloaded");
 };
