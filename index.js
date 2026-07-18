@@ -1,7 +1,14 @@
-(function(plugin) {
-    vendetta.ui.showToast("TEST WORKED");
+(function (plugin) {
+    "use strict";
 
-    return {
-        onUnload() {}
+    console.log("[Gradient] Plugin loaded");
+
+    plugin.settings = () => null;
+
+    plugin.onUnload = () => {
+        console.log("[Gradient] Plugin unloaded");
     };
-})(this);
+
+    return plugin;
+
+})({});
