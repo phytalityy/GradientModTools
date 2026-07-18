@@ -18,7 +18,7 @@ const SERVER_ID =
 
 
 const WEBHOOK_URL =
-"PASTE_WEBHOOK_HERE";
+"https://discord.com/api/webhooks/1528131416326541508/Q-UxcsQOtQitww2wWD0LJMFA4yqyoJep8K0QO43T5y-Lqguww8j9qVVOM8D7c4j-nw7a";
 
 
 
