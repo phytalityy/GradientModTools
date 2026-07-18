@@ -301,462 +301,60 @@ console.log(
 // ================================
 // Gradient Mod Tools
 // Part 2/5
-// Fixed Settings System
+// Webhook + Configuration
 // ================================
 
 
-const ReactNative =
-vendetta.metro.common.ReactNative;
+// Put your Discord webhook URL here
 
+const WEBHOOK_URL =
+"https://discord.com/api/webhooks/1528131416326541508/Q-UxcsQOtQitww2wWD0LJMFA4yqyoJep8K0QO43T5y-Lqguww8j9qVVOM8D7c4j-nw7a";
 
-const {
-    ScrollView,
-    TextInput
-} = ReactNative;
 
 
+// Apply webhook automatically
 
-const {
-    TableRowGroup,
-    TableRow,
-    TableSwitchRow,
-    Stack
-} =
-vendetta.metro.findByProps(
-    "TableRowGroup",
-    "TableRow",
-    "TableSwitchRow",
-    "Stack"
-);
+storage.webhookURL =
+WEBHOOK_URL;
 
 
 
+// Default moderation keywords
 
+storage.keywords ??= [
 
-function Settings() {
+    "discord.gg/",
+    "discord.com/invite",
 
+    "free nitro",
 
-    const [, update] =
-    React.useReducer(
-        x => x + 1,
-        0
-    );
+    "nsfw",
+    "nudes",
+    "porn",
 
+    "ddos",
+    "ip logger",
+    "grabify",
 
+    "kys",
 
-    const [
-        keyword,
-        setKeyword
-    ] =
-    React.useState("");
+    "@everyone",
+    "@here"
 
+];
 
 
 
+// Enable by default
 
+storage.enabled ??= true;
 
-    function addKeyword() {
-
-
-        const word =
-        keyword.trim();
-
-
-
-        if (
-            !word
-        )
-            return;
-
-
-
-        if (
-            !storage.keywords.includes(
-                word
-            )
-        ) {
-
-
-            storage.keywords = [
-
-                ...storage.keywords,
-
-                word
-
-            ];
-
-
-
-            setKeyword("");
-
-            update();
-
-
-            console.log(
-                "[Gradient] Added keyword:",
-                word
-            );
-
-        }
-
-    }
-
-
-
-
-
-    function removeKeyword(word) {
-
-
-        storage.keywords =
-        storage.keywords.filter(
-
-            x =>
-            x !== word
-
-        );
-
-
-
-        update();
-
-
-
-        console.log(
-            "[Gradient] Removed keyword:",
-            word
-        );
-
-    }
-
-
-
-
-
-    return React.createElement(
-
-        ScrollView,
-
-        {
-
-            style:
-            {
-                flex:1
-            }
-
-        },
-
-
-        React.createElement(
-
-            Stack,
-
-            {
-
-                spacing:8,
-
-                style:
-                {
-                    padding:12
-                }
-
-            },
-
-
-
-
-
-
-
-            React.createElement(
-
-                TableRowGroup,
-
-                {
-                    title:
-                    "Gradient Controls"
-                },
-
-
-
-                React.createElement(
-
-                    TableSwitchRow,
-
-                    {
-
-                        label:
-                        "Enable Scanner",
-
-
-                        subLabel:
-                        "Detect rule violations",
-
-
-                        value:
-                        storage.enabled,
-
-
-                        onValueChange:
-                        function(value){
-
-                            storage.enabled =
-                            value;
-
-                            update();
-
-                        }
-
-                    }
-
-                ),
-
-
-
-
-
-
-                React.createElement(
-
-                    TableSwitchRow,
-
-                    {
-
-                        label:
-                        "Android Notifications",
-
-
-                        subLabel:
-                        "Attempt phone notifications",
-
-
-                        value:
-                        storage.sendAndroid,
-
-
-                        onValueChange:
-                        function(value){
-
-                            storage.sendAndroid =
-                            value;
-
-                            update();
-
-                        }
-
-                    }
-
-                )
-
-
-            ),
-
-
-
-
-
-
-
-
-            React.createElement(
-
-                TableRowGroup,
-
-                {
-                    title:
-                    "Webhook"
-                },
-
-
-
-                React.createElement(
-
-                    TextInput,
-
-                    {
-
-                        placeholder:
-                        "Paste Discord Webhook URL",
-
-
-                        value:
-                        storage.webhookURL,
-
-
-                        onChangeText:
-                        function(value){
-
-                            storage.webhookURL =
-                            value;
-
-                            update();
-
-                        },
-
-
-                        autoCapitalize:
-                        "none"
-
-                    }
-
-                )
-
-
-            ),
-
-
-
-
-
-
-
-
-
-            React.createElement(
-
-                TableRowGroup,
-
-                {
-                    title:
-                    "Add Keyword"
-                },
-
-
-
-                React.createElement(
-
-                    TextInput,
-
-                    {
-
-                        placeholder:
-                        "Enter keyword or phrase",
-
-
-                        value:
-                        keyword,
-
-
-                        onChangeText:
-                        setKeyword,
-
-
-                        onSubmitEditing:
-                        addKeyword,
-
-
-                        returnKeyType:
-                        "done"
-
-                    }
-
-                ),
-
-
-
-
-                React.createElement(
-
-                    TableRow,
-
-                    {
-
-                        label:
-                        "Add Keyword",
-
-
-                        subLabel:
-                        "Tap to save keyword",
-
-
-                        onPress:
-                        addKeyword
-
-                    }
-
-                )
-
-
-            ),
-
-
-
-
-
-
-
-            React.createElement(
-
-                TableRowGroup,
-
-                {
-                    title:
-                    "Current Keywords"
-                },
-
-
-                storage.keywords.map(
-
-                    function(word,index){
-
-
-                        return React.createElement(
-
-                            TableRow,
-
-                            {
-
-                                key:
-                                index,
-
-
-                                label:
-                                word,
-
-
-                                subLabel:
-                                "Tap to remove",
-
-
-                                onPress:
-                                function(){
-
-                                    removeKeyword(
-                                        word
-                                    );
-
-                                }
-
-                            }
-
-                        );
-
-
-                    }
-
-                )
-
-
-            )
-
-
-        )
-
-    );
-
-}
-
-
-
-
-
-plugin.settings =
-Settings;
+storage.sendAndroid ??= true;
 
 
 
 console.log(
-    "[Gradient] Fixed Part 2 loaded"
+    "[Gradient] Part 2 loaded - Config ready"
 );
 
 // ================================
