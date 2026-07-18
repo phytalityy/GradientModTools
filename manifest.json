@@ -1,9 +1,13 @@
 {
-    "name": "GradientModTools",
-    "description": "Gradient staff moderation assistant",
+    "name": "Gradient Mod Tools",
+    "description": "Role-based moderation assistant for Gradient staff",
     "authors": [
-        "Phytalityy"
+        {
+            "name": "Phytalityy"
+        }
     ],
-    "version": "1.0.0",
-    "main": "plugin.js"
-}}
+    "main": "index.js",
+    "vendetta": {
+        "icon": "shield"
+    }
+}
