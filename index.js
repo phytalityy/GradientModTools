@@ -1,7 +1,7 @@
 (function (plugin) {
     "use strict";
 
-    const React = vendetta.metro.common.React;
+    const React = vendetta.metro.common?.React ?? vendetta.metro.findByProps("createElement");
 
     const Dispatcher = vendetta.metro.findByProps(
         "dispatch",
@@ -16,10 +16,16 @@
     const GRADIENT_SERVER_ID =
         "1506336019828445365";
 
+
+    // FIX: initialize storage first
+    plugin.storage ??= {};
+
     plugin.storage.enabled ??= true;
     plugin.storage.alertCooldowns ??= {};
 
+
     let messageListener = null;
+
 
     /*
         ==========================================
@@ -32,14 +38,16 @@
         if (!plugin.storage.enabled)
             return;
 
-        // Android notification
+
+        // Android notification attempt
         try {
 
             if (Notifications?.showNotification) {
 
                 Notifications.showNotification({
 
-                    title,
+                    title: title,
+
                     body: message
 
                 });
@@ -54,6 +62,7 @@
             );
 
         }
+
 
         // Toast fallback
         try {
@@ -73,6 +82,8 @@
 
     }
 
+
+
     /*
         ==========================================
         Cooldown
@@ -87,8 +98,8 @@
         const now = Date.now();
 
         const last =
-            plugin.storage
-                .alertCooldowns[type] || 0;
+            plugin.storage.alertCooldowns[type] || 0;
+
 
         if (
             now - last < cooldown
@@ -98,12 +109,15 @@
 
         }
 
-        plugin.storage
-            .alertCooldowns[type] = now;
+
+        plugin.storage.alertCooldowns[type] = now;
+
 
         return true;
 
     }
+
+
 
     /*
         ==========================================
@@ -120,14 +134,13 @@
     ) {
 
         if (
-            !canAlert(
-                violation
-            )
+            !canAlert(violation)
         ) {
 
             return;
 
         }
+
 
         const message =
 
@@ -145,12 +158,15 @@ ${evidence}
 Recommended:
 ${punishment}`;
 
+
         sendAlert(
             "🚨 Gradient Mod Alert",
             message
         );
 
     }
+
+
 
     /*
         ==========================================
@@ -171,15 +187,14 @@ ${punishment}`;
 
     };
 
+
     console.log(
         "[Gradient] Core loaded"
     );
 
+
     /*
-        ==========================================
-        Rule Database
         Part 2 starts below
-        ==========================================
     */
 
 /*
