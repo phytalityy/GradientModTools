@@ -9,83 +9,69 @@ const Dispatcher =
     );
 
 
+const ChannelStore =
+    vendetta.metro.findByProps(
+        "getChannel"
+    );
+
+
+
 // ================================
 // CONFIG
 // ================================
+
 
 const SERVER_ID =
 "1506336019828445365";
 
 
+const TRACK_CATEGORY_ID =
+"1506392513374851082";
+
+
 const WEBHOOK_URL =
-"https://discord.com/api/webhooks/1528131416326541508/Q-UxcsQOtQitww2wWD0LJMFA4yqyoJep8K0QO43T5y-Lqguww8j9qVVOM8D7c4j-nw7a";
-
-
-
-const ENTRY_ACTIONS = {
-
-    NSFW:
-    "Imute / Timeout (3h)",
-
-    HATE:
-    "Timeout / Jail + Higher Staff Review",
-
-    THREATS:
-    "Jail + Higher Staff Review",
-
-    ADVERTISING:
-    "Remove Advertisement + Verbal Warn",
-
-    SPAM:
-    "Warn → Jail/Timeout",
-
-    IMPERSONATION:
-    "Jail until corrected",
-
-    TOXICITY:
-    "Verbal Warn → Warn"
-
-};
+"PASTE_WEBHOOK_HERE";
 
 
 
 
 // ================================
-// KEYWORDS
+// RULES
 // ================================
 
 
 const RULES = [
 
 {
-type:"NSFW",
+name:"NSFW",
+action:"Imute / Timeout (3h)",
 keywords:[
 "nsfw",
 "nudes",
 "porn",
 "onlyfans",
 "explicit",
-"sexual",
-"send pics"
+"sexual"
 ]
 },
 
 
 {
-type:"THREATS",
+name:"Threats / Illegal Activity",
+action:"Jail + Higher Staff Review",
 keywords:[
 "ddos",
-"i will hack you",
+"hack you",
 "leak your ip",
 "find your house",
-"kill you",
-"swat you"
+"swat"
 ]
 },
 
 
 {
-type:"ADVERTISING",
+name:"Advertising",
+action:"Remove Advertisement + Verbal Warn",
 keywords:[
 "discord.gg/",
 "discord.com/invite",
@@ -96,32 +82,22 @@ keywords:[
 
 
 {
-type:"SPAM",
+name:"Spam",
+action:"Warn → Jail/Timeout",
 keywords:[
 "@everyone",
-"@here",
-"ping everyone"
+"@here"
 ]
 },
 
 
 {
-type:"IMPERSONATION",
+name:"Staff Impersonation",
+action:"Jail until corrected",
 keywords:[
 "i am staff",
-"i'm staff",
-"i am admin",
+"i'm admin",
 "owner said"
-]
-},
-
-
-{
-type:"TOXICITY",
-keywords:[
-"kill yourself",
-"nobody likes you",
-"loser"
 ]
 }
 
@@ -131,18 +107,18 @@ keywords:[
 
 
 // ================================
-// TRACKING
+// VARIABLES
 // ================================
 
 
-let listener = null;
+let messageListener;
 
-let editListener = null;
+let editListener;
 
-let deleteListener = null;
+let deleteListener;
 
 
-let history = {};
+const spamCache = {};
 
 
 
@@ -153,7 +129,7 @@ let history = {};
 // ================================
 
 
-async function webhook(data){
+async function sendWebhook(content) {
 
 
     if (
@@ -161,7 +137,6 @@ async function webhook(data){
         "PASTE_WEBHOOK_HERE"
     )
     return;
-
 
 
     try {
@@ -173,19 +148,18 @@ async function webhook(data){
 
             {
 
-                method:"POST",
+            method:"POST",
 
-                headers:{
-                    "Content-Type":
-                    "application/json"
-                },
+            headers:{
+                "Content-Type":
+                "application/json"
+            },
 
+            body:JSON.stringify({
 
-                body:JSON.stringify({
+                content:content
 
-                    content:data
-
-                })
+            })
 
             }
 
@@ -195,12 +169,10 @@ async function webhook(data){
     }
     catch(e){
 
-
         console.log(
             "[Gradient]",
             e
         );
-
 
     }
 
@@ -211,55 +183,68 @@ async function webhook(data){
 
 
 // ================================
-// ALERT
+// CATEGORY LOGGER
 // ================================
 
 
-function alertViolation(
-message,
-rule,
-keyword
-){
+function logCategoryMessage(message){
 
 
-    const user =
-    message.author;
+    if(
+        !message.guild_id ||
+        message.guild_id !== SERVER_ID
+    )
+    return;
+
 
 
     const channel =
-    message.channel_id;
+    ChannelStore.getChannel(
+        message.channel_id
+    );
 
 
 
-    webhook(
+    if(
+        !channel
+    )
+    return;
 
-`🚨 **Gradient Mod Alert**
 
-**Server**
+
+    if(
+        channel.parent_id !==
+        TRACK_CATEGORY_ID
+    )
+    return;
+
+
+
+    sendWebhook(
+
+`📨 **Category Message Log**
+
+Server:
 ${SERVER_ID}
 
-**Channel ID**
-${channel}
+Channel:
+<#${channel.id}>
 
-**User**
-<@${user.id}>
+Channel ID:
+${channel.id}
 
-**Username**
-${user.username}
+User:
+<@${message.author.id}>
 
-**Violation**
-${rule}
+Username:
+${message.author.username}
 
-**Triggered Keyword**
-${keyword}
+Message:
 
-**Message**
 ${message.content}
 
-**Recommended Entry Action**
-${ENTRY_ACTIONS[rule]}
-
-`
+Message ID:
+${message.id}`
 
     );
 
@@ -274,7 +259,7 @@ ${ENTRY_ACTIONS[rule]}
 // ================================
 
 
-function scan(message){
+function scanMessage(message){
 
 
     if(
@@ -287,15 +272,15 @@ function scan(message){
 
 
     if(
-        message.guild_id &&
-        message.guild_id !== SERVER_ID
+        message.author.bot
     )
     return;
 
 
 
     if(
-        message.author.bot
+        message.guild_id &&
+        message.guild_id !== SERVER_ID
     )
     return;
 
@@ -312,22 +297,42 @@ function scan(message){
 
 
         for(
-            const word of rule.keywords
+            const keyword of rule.keywords
         ){
 
 
             if(
-                text.includes(word)
+                text.includes(keyword)
             ){
 
 
-                alertViolation(
+                sendWebhook(
 
-                    message,
+`🚨 **Gradient Mod Alert**
 
-                    rule.type,
+Server:
+${SERVER_ID}
 
-                    word
+Channel:
+<#${message.channel_id}>
+
+User:
+<@${message.author.id}>
+
+Username:
+${message.author.username}
+
+Violation:
+${rule.name}
+
+Keyword:
+${keyword}
+
+Message:
+${message.content}
+
+Recommended:
+${rule.action}`
 
                 );
 
@@ -341,10 +346,9 @@ function scan(message){
     }
 
 
-    checkAttachments(message);
-
-
     checkSpam(message);
+
+    checkFiles(message);
 
 }
 
@@ -353,11 +357,11 @@ function scan(message){
 
 
 // ================================
-// ATTACHMENT SCANNER
+// ATTACHMENT DETECTOR
 // ================================
 
 
-function checkAttachments(message){
+function checkFiles(message){
 
 
     if(
@@ -367,15 +371,10 @@ function checkAttachments(message){
 
 
 
-    const files =
-    Object.values(
-        message.attachments
-    );
-
-
-
     for(
-        const file of files
+        const file of Object.values(
+            message.attachments
+        )
     ){
 
 
@@ -392,7 +391,6 @@ function checkAttachments(message){
         if(
 
             name.includes("nsfw") ||
-            name.includes("nude") ||
             name.includes("virus") ||
             name.includes("grabify") ||
             name.endsWith(".exe") ||
@@ -401,9 +399,9 @@ function checkAttachments(message){
         ){
 
 
-            webhook(
+            sendWebhook(
 
-`🚨 **Gradient Attachment Alert**
+`⚠️ **Suspicious File**
 
 User:
 <@${message.author.id}>
@@ -412,13 +410,10 @@ File:
 ${file.filename}
 
 Channel:
-${message.channel_id}
+<#${message.channel_id}}
 
 Recommended:
-Imute / Timeout
-
-Reason:
-Suspicious attachment name`
+Review + Imute/Timeout if needed`
 
             );
 
@@ -434,7 +429,7 @@ Suspicious attachment name`
 
 
 // ================================
-// SPAM DETECTION
+// SPAM
 // ================================
 
 
@@ -445,19 +440,16 @@ function checkSpam(message){
     message.author.id;
 
 
-
-    history[id] ??= [];
-
+    spamCache[id] ??= [];
 
 
-    history[id].push(
+    spamCache[id].push(
         Date.now()
     );
 
 
-
-    history[id] =
-    history[id].filter(
+    spamCache[id] =
+    spamCache[id].filter(
 
         x =>
         Date.now()-x < 5000
@@ -467,22 +459,22 @@ function checkSpam(message){
 
 
     if(
-        history[id].length >= 6
+        spamCache[id].length >= 6
     ){
 
 
-        webhook(
+        sendWebhook(
 
-`🚨 **Gradient Spam Alert**
+`🚨 **Spam Detection**
 
 User:
 <@${id}>
 
 Channel:
-${message.channel_id}
+<#${message.channel_id}>
 
 Messages:
-${history[id].length} in 5 seconds
+${spamCache[id].length} in 5 seconds
 
 Recommended:
 Warn → Jail/Timeout`
@@ -490,7 +482,7 @@ Warn → Jail/Timeout`
         );
 
 
-        history[id]=[];
+        spamCache[id]=[];
 
     }
 
@@ -508,35 +500,34 @@ Warn → Jail/Timeout`
 function onLoad(){
 
 
-    listener =
-    data =>
-    scan(data.message);
+    messageListener =
+    data => {
+
+        const message =
+        data.message;
 
 
+        logCategoryMessage(
+            message
+        );
 
-    Dispatcher.subscribe(
 
-        "MESSAGE_CREATE",
+        scanMessage(
+            message
+        );
 
-        listener
-
-    );
+    };
 
 
 
     editListener =
-    data =>
-    scan(data.message);
+    data => {
 
+        scanMessage(
+            data.message
+        );
 
-
-    Dispatcher.subscribe(
-
-        "MESSAGE_UPDATE",
-
-        editListener
-
-    );
+    };
 
 
 
@@ -548,10 +539,9 @@ function onLoad(){
             data.message
         ){
 
+            sendWebhook(
 
-            webhook(
-
-`⚠️ **Message Deleted**
+`🗑️ **Message Deleted**
 
 User:
 <@${data.message.author?.id}>
@@ -571,13 +561,21 @@ ${data.message.content}`
 
 
     Dispatcher.subscribe(
-
-        "MESSAGE_DELETE",
-
-        deleteListener
-
+        "MESSAGE_CREATE",
+        messageListener
     );
 
+
+    Dispatcher.subscribe(
+        "MESSAGE_UPDATE",
+        editListener
+    );
+
+
+    Dispatcher.subscribe(
+        "MESSAGE_DELETE",
+        deleteListener
+    );
 
 
     console.log(
@@ -598,15 +596,11 @@ ${data.message.content}`
 function onUnload(){
 
 
-    if(listener)
-
     Dispatcher.unsubscribe(
         "MESSAGE_CREATE",
-        listener
+        messageListener
     );
 
-
-    if(editListener)
 
     Dispatcher.unsubscribe(
         "MESSAGE_UPDATE",
@@ -614,13 +608,10 @@ function onUnload(){
     );
 
 
-    if(deleteListener)
-
     Dispatcher.unsubscribe(
         "MESSAGE_DELETE",
         deleteListener
     );
-
 
 
     console.log(
@@ -628,6 +619,7 @@ function onUnload(){
     );
 
 }
+
 
 
 
