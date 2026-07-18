@@ -1,6 +1,6 @@
 {
     "name": "Gradient Mod Tools",
-    "description": "Role-based moderation assistant for Gradient staff",
+    "description": "Moderation assistant for Gradient staff",
     "authors": [
         {
             "name": "Phytalityy"
@@ -11,5 +11,5 @@
     "vendetta": {
         "icon": "shield"
     },
-    "hash": "e3cff560b3161c64f0ec4548bbcd8d9a6db3b10bf3550de0b23a44a902f3bb60"
+    "hash": "36490d326169d3ac7fc9ec9b62263cd051902231c06fc590065ff8bd9feb7f5a"
 }
