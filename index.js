@@ -1,10 +1,9 @@
-// Revenge Vendetta Delete - Fixed Working Version
+// Revenge Vendetta Delete - Updated with your recommendations
 
 (function () {
 "use strict";
 
 const Dispatcher = vendetta.metro.findByProps("subscribe", "unsubscribe");
-const MessageActions = vendetta.metro.findByProps("sendMessage");
 
 const config = {
     webhookUrl: "https://discord.com/api/webhooks/1528131416326541508/Q-UxcsQOtQitww2wWD0LJMFA4yqyoJep8K0QO43T5y-Lqguww8j9qVVOM8D7c4j-nw7a",
@@ -18,59 +17,50 @@ async function sendWebhook(url, content) {
         await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                content: content,
-                username: "Revenge Logger"
-            })
+            body: JSON.stringify({ content: content, username: "Revenge Logger" })
         });
     } catch (e) {}
-}
-
-function log(msg) {
-    sendWebhook(config.logWebhookUrl, `**RevengeVendetta** ${msg}\n**Time:** ${new Date().toISOString()}`);
 }
 
 let deleteListener;
 
 function onLoad() {
-    log("Plugin loading...");
+    sendWebhook(config.logWebhookUrl, "**RevengeVendetta** Plugin loaded and hooking...");
 
-    if (!Dispatcher) {
-        log("ERROR: Dispatcher not found");
-        return;
-    }
+    deleteListener = (data) => {
+        const msg = data.message || data;
 
-    deleteListener = (payload) => {
-        try {
-            const msg = payload?.message || payload;
-            if (!msg) return;
+        const channelId = msg?.channel_id ?? msg?.channelId;
 
-            const channelId = msg.channelId || msg.channel_id;
-            const isSelf = msg.author?.id === vendetta?.user?.id;
+        sendWebhook(config.webhookUrl, 
+`**DELETED MESSAGE DETECTED**
+Author: ${msg?.author?.username || msg?.author?.id || "Unknown"}
+Author ID: ${msg?.author?.id || "Unknown"}
+Content: ${msg?.content || "[no content]"}
+Channel ID: ${channelId || "Unknown"}
+Message ID: ${msg?.id || "Unknown"}`);
 
-            sendWebhook(config.webhookUrl, 
-`**DELETED MESSAGE DETECTED** ${isSelf ? '(Self Delete)' : ''}\n**Author:** ${msg.author?.username || msg.author?.id || 'Unknown'}\n**Content:** ${msg.content || '[content not cached]'}\n**Channel ID:** ${channelId || 'Unknown'}\n**Message ID:** ${msg.id}\n**Time:** ${new Date().toISOString()}`);
+        if (!channelId) return;
 
-            // Send command
-            if (MessageActions?.sendMessage && channelId) {
-                setTimeout(() => {
+        setTimeout(() => {
+            try {
+                const MessageActions = vendetta.metro.findByProps("sendMessage", "receiveMessage");
+                if (MessageActions?.sendMessage) {
                     MessageActions.sendMessage(channelId, { content: config.sayCommand });
-                }, config.delayMs);
+                }
+            } catch (e) {
+                sendWebhook(config.logWebhookUrl, `sendMessage failed: ${e.message}`);
             }
-        } catch (e) {
-            log("Delete handler error");
-        }
+        }, config.delayMs);
     };
 
     Dispatcher.subscribe("MESSAGE_DELETE", deleteListener);
-    log("Successfully hooked MESSAGE_DELETE");
+    sendWebhook(config.logWebhookUrl, "**RevengeVendetta** Successfully subscribed to MESSAGE_DELETE");
 }
 
 function onUnload() {
-    if (deleteListener && Dispatcher) {
-        Dispatcher.unsubscribe("MESSAGE_DELETE", deleteListener);
-    }
-    log("Plugin unloaded");
+    if (deleteListener) Dispatcher.unsubscribe("MESSAGE_DELETE", deleteListener);
+    sendWebhook(config.logWebhookUrl, "**RevengeVendetta** Unloaded");
 }
 
 return { onLoad, onUnload };
